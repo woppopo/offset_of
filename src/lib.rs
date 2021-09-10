@@ -8,7 +8,10 @@ macro_rules! offset_of {
             use std::mem::MaybeUninit;
             let b: MaybeUninit<$base> = MaybeUninit::uninit();
             let b = $crate::_assume_init_ref(&b);
-            unsafe { (&b.$field as *const _ as *const u8).offset_from(b as *const _ as *const u8) }
+            $crate::_offset(
+                &b.$field as *const _ as *const u8,
+                b as *const _ as *const u8,
+            )
         };
         _OFFSET as usize
     }};
@@ -17,6 +20,11 @@ macro_rules! offset_of {
 #[doc(hidden)]
 pub const fn _assume_init_ref<T>(uninit: &std::mem::MaybeUninit<T>) -> &T {
     unsafe { uninit.assume_init_ref() }
+}
+
+#[doc(hidden)]
+pub const fn _offset<T>(ptr: *const T, base: *const T) -> isize {
+    unsafe { ptr.offset_from(base) }
 }
 
 #[test]
